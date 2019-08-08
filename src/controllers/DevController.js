@@ -3,19 +3,23 @@ const Dev = require('../models/Dev')
 
 module.exports = {
   async index(req, res) {
-    const { user } = req.headers
+    try {
+      const { user } = req.headers
 
-    const loggedDev = await Dev.findById(user)
+      const loggedDev = await Dev.findById(user)
 
-    const users = await Dev.find({
-      $and: [
-        { _id: { $ne: user } },
-        { _id: { $nin: loggedDev.likes } },
-        { _id: { $nin: loggedDev.dislikes } }
-      ]
-    })
+      const users = await Dev.find({
+        $and: [
+          { _id: { $ne: user } },
+          { _id: { $nin: loggedDev.likes } },
+          { _id: { $nin: loggedDev.dislikes } }
+        ]
+      })
 
-    return res.json(users)
+      return res.json(users)
+    } catch (error) {
+      return res.status(400).json(error.message)
+    }
   },
 
   async store(req, res) {
@@ -42,7 +46,7 @@ module.exports = {
 
       return res.json(dev)
     } catch (error) {
-      return res.status(400).json({ Error: error.message })
+      return res.status(404).json(error.message)
     }
   }
 }
