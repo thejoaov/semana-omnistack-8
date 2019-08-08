@@ -25,6 +25,7 @@ module.exports = {
       await loggedDev.save()
 
       return res.json(loggedDev)
+      
     } catch (error) {
       return res.status(400).json({ Error: error.message })
     }
