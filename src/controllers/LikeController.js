@@ -12,11 +12,11 @@ module.exports = {
       }
 
       if (targetDev.likes.includes(loggedDev._id)) {
-        console.log('LOL DEU MATCH kKKKKKKK')
+        console.log('kkkKKKKK DEU MATCH kKKkKKK')
       }
 
       if (loggedDev.likes.includes(targetDev._id)) {
-        console.log('Já deu like amigão.')
+        console.log('Sossega aí o dedo do like amigão.')
         return res.status(400).json({ error: 'Already Liked' })
       }
 
