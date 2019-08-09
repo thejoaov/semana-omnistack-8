@@ -22,24 +22,21 @@ module.exports = {
     }
   },
   async show(req, res) {
-    const { id } = req.headers;
+    const { userid } = req.headers;
 
     try {
-      const userExists = await Dev.findById(id);
+      const userExists = await Dev.findById(userid);
       if (userExists) {
         return res.json(userExists);
       }
 
-      const response = await axios.get(`https://api.github.com/users/${id}`);
+      const response = await axios.get(
+        `https://api.github.com/users/${userid}`
+      );
 
-      const { name, bio, avatar_url: avatar } = response.data;
+      // const { name, bio, avatar_url: avatar } = response.data;
 
-      const dev = await Dev.create({
-        name,
-        username,
-        bio,
-        avatar,
-      });
+      const dev = await Dev.findById(id);
 
       return res.json(dev);
     } catch (error) {
