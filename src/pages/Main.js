@@ -17,7 +17,6 @@ import AsyncStorage from "@react-native-community/async-storage";
 export default function Main({ navigation }) {
   const id = navigation.getParam("user");
   const [profile, setProfile] = useState([]);
-  const [users, setUsers] = useState([]);
   useEffect(() => {
     async function loadProfile() {
       const response = await api.get(`/dev/${id}`);
@@ -26,6 +25,7 @@ export default function Main({ navigation }) {
     loadProfile();
   }, [users]);
 
+  const [users, setUsers] = useState([]);
   useEffect(() => {
     async function loadUsers() {
       const response = await api.get("/", {
@@ -92,7 +92,7 @@ export default function Main({ navigation }) {
               <View style={styles.footer}>
                 <Text style={styles.name}>{user.name}</Text>
                 <Text style={styles.bio} numberOfLines={3}>
-                  {user.bio}styles.user
+                  {user.bio}
                 </Text>
               </View>
             </View>
