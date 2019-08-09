@@ -8,6 +8,7 @@ const routes = express.Router();
 // métodos http: GET, POST, PUT, DELETE
 routes.get("/devs", DevController.index);
 routes.post("/devs", DevController.store);
+routes.post("/devs/dev/", DevController.show);
 routes.post("/devs/:devId/likes", LikeController.store);
 routes.post("/devs/:devId/dislikes", DislikeController.store);
 
