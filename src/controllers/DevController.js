@@ -30,7 +30,7 @@ module.exports = {
         return res.json(userExists);
       }
 
-      const response = await axios.get(`https://api.github.com/users/${devId}`);
+      // const response = await axios.get(`https://api.github.com/users/${devId}`);
 
       // const { name, bio, avatar_url: avatar } = response.data;
 
