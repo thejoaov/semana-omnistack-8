@@ -16,8 +16,20 @@ import AsyncStorage from "@react-native-community/async-storage";
 
 export default function Main({ navigation }) {
   const id = navigation.getParam("user");
+  const [profile, setProfile] = useState([]);
   const [users, setUsers] = useState([]);
-  const [user, setUser] = useState("");
+  useEffect(() => {
+    async function loadProfile() {
+      const response = await api.post(`/devs/dev`, null, {
+        headers: {
+          userid: id,
+        },
+      });
+      setProfile(response.data);
+    }
+    loadProfile();
+  }, []);
+
   useEffect(
     () => {
       async function loadUsers() {
@@ -60,20 +72,16 @@ export default function Main({ navigation }) {
     await AsyncStorage.clear();
     navigation.navigate("Login");
   }
-
-  async function getUser() {
-    setUser(response);
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity onPress={handleLogout}>
         <Image source={logo} style={styles.logo} />
       </TouchableOpacity>
       <View style={styles.user}>
-        <Text style={styles.userName}>{user.name}</Text>
+        <Image style={styles.profile} source={{ uri: profile.avatar }} />
+        <Text style={styles.name}>{profile.name}</Text>
       </View>
-      <View style={styles.carsContainer}>
+      <View style={styles.cardsContainer}>
         {users.length === 0 ? (
           <Text style={styles.empty}>Acabou :/</Text>
         ) : (
@@ -91,7 +99,7 @@ export default function Main({ navigation }) {
               <View style={styles.footer}>
                 <Text style={styles.name}>{user.name}</Text>
                 <Text style={styles.bio} numberOfLines={3}>
-                  {user.bio}
+                  {user.bio}styles.user
                 </Text>
               </View>
             </View>
@@ -121,14 +129,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  carsContainer: {
+  cardsContainer: {
     flex: 1,
     alignSelf: "stretch",
     justifyContent: "center",
     maxHeight: 500,
   },
   logo: {
-    marginTop: 30,
+    marginTop: 20,
+  },
+  user: {
+    top: 0,
+  },
+  profile: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginHorizontal: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+  },
+  name: {
+    fontWeight: "bold",
   },
   empty: {
     alignSelf: "center",
@@ -140,7 +171,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    margin: 30,
+    marginTop: 10,
+    marginHorizontal: 20,
     overflow: "hidden",
     position: "absolute",
     top: 0,
