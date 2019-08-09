@@ -6,7 +6,7 @@ import {
   Platform,
   Text,
   Image,
-  TouchableOpacity,
+  TouchableOpacity
 } from "react-native";
 import logo from "../assets/logo.png";
 
@@ -24,7 +24,7 @@ export default function Login({ navigation }) {
   }, []);
 
   async function handleLogin() {
-    const response = await api.post("/devs", { username: user });
+    const response = await api.post("/", { username: user });
 
     const { _id } = response.data;
 
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     justifyContent: "center",
     alignItems: "center",
-    padding: 70,
+    padding: 70
   },
   input: {
     height: 46,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 4,
     marginTop: 20,
-    paddingHorizontal: 15,
+    paddingHorizontal: 15
   },
   button: {
     height: 46,
@@ -84,11 +84,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginTop: 10,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   buttonText: {
     color: "#FFF",
     fontWeight: "bold",
-    fontSize: 16,
-  },
+    fontSize: 16
+  }
 });
