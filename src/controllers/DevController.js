@@ -22,7 +22,7 @@ module.exports = {
     }
   },
   async show(req, res) {
-    const { id } = req.body;
+    const { id } = req.headers;
 
     try {
       const userExists = await Dev.findById(id);
