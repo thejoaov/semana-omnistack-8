@@ -12,8 +12,8 @@ module.exports = {
         $and: [
           { _id: { $ne: user } },
           { _id: { $nin: loggedDev.likes } },
-          { _id: { $nin: loggedDev.dislikes } },
-        ],
+          { _id: { $nin: loggedDev.dislikes } }
+        ]
       });
 
       return res.json(users);
@@ -22,17 +22,15 @@ module.exports = {
     }
   },
   async show(req, res) {
-    const { userid } = req.headers;
+    const { devId } = req.params;
 
     try {
-      const userExists = await Dev.findById(userid);
+      const userExists = await Dev.findById(devId);
       if (userExists) {
         return res.json(userExists);
       }
 
-      const response = await axios.get(
-        `https://api.github.com/users/${userid}`
-      );
+      const response = await axios.get(`https://api.github.com/users/${devId}`);
 
       // const { name, bio, avatar_url: avatar } = response.data;
 
@@ -62,12 +60,12 @@ module.exports = {
         name,
         user: username,
         bio,
-        avatar,
+        avatar
       });
 
       return res.json(dev);
     } catch (error) {
       return res.status(404).json(error.message);
     }
-  },
+  }
 };
