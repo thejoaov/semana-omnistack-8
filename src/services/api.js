@@ -1,9 +1,10 @@
-import axios from 'axios'
+import axios from "axios";
 
-const url = process.env.DB_URL || 'http://localhost:3333'
+const url = process.env.DB_URL || "http://localhost:3333";
 
 const api = axios.create({
-  baseURL: url
-})
+  baseURL: url,
+});
 
-export default api
+export default api;
+export { url };
