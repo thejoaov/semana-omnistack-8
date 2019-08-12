@@ -16,7 +16,7 @@ io.on("connection", socket => {
   connectedUsers[user] = socket.id;
 });
 
-const url = process.env.DB_URL;
+const url = `${process.env.DB_URL}:${process.env.PORT || 3333}`;
 mongoose.connect(url, {
   useNewUrlParser: true,
 });
