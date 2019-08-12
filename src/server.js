@@ -16,7 +16,7 @@ io.on("connection", socket => {
   connectedUsers[user] = socket.id;
 });
 
-const url = `${process.env.DB_URL}:${process.env.PORT || 3333}`;
+const url = process.env.DB_URL;
 mongoose.connect(url, {
   useNewUrlParser: true,
 });
@@ -26,6 +26,10 @@ app.use((req, res, next) => {
   req.connectedUsers = connectedUsers;
 
   return next();
+});
+
+app.listen(process.env.PORT, "0.0.0.0", function() {
+  console.log(`Server rodando em: ${process.env.HOST}:${process.env.PORT}`);
 });
 
 app.use(cors());
