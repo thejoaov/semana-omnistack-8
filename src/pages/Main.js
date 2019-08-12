@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import dislike from "../assets/dislike.svg";
 import itsamatch from "../assets/itsamatch.png";
+
 import like from "../assets/like.svg";
+
 import logo from "../assets/logo.svg";
 import api, { url } from "../services/api";
 import "./Main.css";
-
 import io from "socket.io-client";
 
 export default function Main({ match }) {
   const [users, setUsers] = useState([]);
   const [matchDev, setMatchDev] = useState(null);
+  const [profile, setProfile] = useState({});
   useEffect(
     () => {
       async function loadUsers() {
@@ -21,13 +22,28 @@ export default function Main({ match }) {
             user: match.params.id,
           },
         });
+
         setUsers(response.data);
       }
+
       loadUsers();
     },
     [match.params.id]
   );
-
+  useEffect(
+    () => {
+      async function getProfile() {
+        const response = await api.get("/devs/u", {
+          headers: {
+            user: match.params.id,
+          },
+        });
+        setProfile(response.data);
+      }
+      getProfile();
+    },
+    [match.params.id]
+  );
   useEffect(
     () => {
       const socket = io(url, {
@@ -43,18 +59,15 @@ export default function Main({ match }) {
 
   async function handleLike(id) {
     await api.post(`/devs/${id}/likes`, null, {
-      headers: {
-        user: match.params.id,
-      },
+      headers: { user: match.params.id },
     });
+
     setUsers(users.filter(user => user._id !== id));
   }
 
   async function handleDislike(id) {
     await api.post(`/devs/${id}/dislikes`, null, {
-      headers: {
-        user: match.params.id,
-      },
+      headers: { user: match.params.id },
     });
 
     setUsers(users.filter(user => user._id !== id));
@@ -65,6 +78,15 @@ export default function Main({ match }) {
       <Link to="/">
         <img src={logo} alt="Tindev" />
       </Link>
+      <div className="profile-container">
+        <img
+          className="profile-avatar"
+          src={profile.avatar}
+          alt={profile.user}
+        />
+        <p className="profile-name">{profile.name}</p>
+        <p className="profile-username">@{profile.user}</p>
+      </div>
       {users.length > 0 ? (
         <ul>
           {users.map(user => (
@@ -74,6 +96,7 @@ export default function Main({ match }) {
                 <strong>{user.name}</strong>
                 <p>{user.bio}</p>
               </footer>
+
               <div className="buttons">
                 <button type="button" onClick={() => handleDislike(user._id)}>
                   <img src={dislike} alt="Dislike" />
@@ -91,10 +114,12 @@ export default function Main({ match }) {
 
       {matchDev && (
         <div className="match-container">
-          <img src={itsamatch} alt="It's a match!" />
-          <img className="avatar" src={matchDev.avatar} alt={matchDev.name} />
+          <img src={itsamatch} alt="It's a match" />
+
+          <img className="avatar" src={matchDev.avatar} alt="" />
           <strong>{matchDev.name}</strong>
           <p>{matchDev.bio}</p>
+
           <button type="button" onClick={() => setMatchDev(null)}>
             FECHAR
           </button>
