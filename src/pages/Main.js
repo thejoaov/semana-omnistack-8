@@ -1,61 +1,84 @@
 import React, { useEffect, useState } from "react";
 import {
+  View,
   Text,
   SafeAreaView,
-  View,
   Image,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
 } from "react-native";
 import dislike from "../assets/dislike.png";
+import itsamatch from "../assets/itsamatch.png";
 
 import like from "../assets/like.png";
+
 import logo from "../assets/logo.png";
-import api from "../services/api";
+import api, { url } from "../services/api";
 import AsyncStorage from "@react-native-community/async-storage";
+import io from "socket.io-client";
 
 export default function Main({ navigation }) {
   const id = navigation.getParam("user");
-  const [profile, setProfile] = useState([]);
-  useEffect(() => {
-    async function loadProfile() {
-      const response = await api.get(`/dev/${id}`);
-      setProfile(response.data);
-    }
-    loadProfile();
-  }, [users]);
-
   const [users, setUsers] = useState([]);
-  useEffect(() => {
-    async function loadUsers() {
-      const response = await api.get("/", {
-        headers: {
-          user: id
-        }
-      });
-      setUsers(response.data);
-    }
-    loadUsers();
-  }, [id]);
+  const [matchDev, setMatchDev] = useState(null);
+  const [profile, setProfile] = useState([]);
+  useEffect(
+    () => {
+      async function loadUsers() {
+        const response = await api.get("/devs", {
+          headers: {
+            user: id,
+          },
+        });
 
+        setUsers(response.data);
+      }
+
+      loadUsers();
+    },
+    [id]
+  );
+
+  useEffect(
+    () => {
+      const socket = io(url, {
+        query: { user: id },
+      });
+
+      socket.on("match", dev => {
+        setMatchDev(dev);
+      });
+    },
+    [id]
+  );
+
+  useEffect(
+    () => {
+      async function getProfile() {
+        const response = await api.get("/devs/u", {
+          headers: { user: id },
+        });
+        setProfile(response.data);
+      }
+      getProfile();
+    },
+    [id]
+  );
   async function handleLike() {
     const [user, ...rest] = users;
 
-    await api.post(`/${user._id}/likes`, null, {
-      headers: {
-        user: id
-      }
+    await api.post(`/devs/${user._id}/likes`, null, {
+      headers: { user: id },
     });
+
     setUsers(rest);
   }
 
   async function handleDislike() {
     const [user, ...rest] = users;
 
-    await api.post(`/${user._id}/dislikes`, null, {
-      headers: {
-        user: id
-      }
+    await api.post(`/devs/${user._id}/dislikes`, null, {
+      headers: { user: id },
     });
 
     setUsers(rest);
@@ -63,32 +86,30 @@ export default function Main({ navigation }) {
 
   async function handleLogout() {
     await AsyncStorage.clear();
+
     navigation.navigate("Login");
   }
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity onPress={handleLogout}>
-        <Image source={logo} style={styles.logo} />
+        <Image style={styles.logo} source={logo} />
       </TouchableOpacity>
-      <View style={styles.user}>
-        <Image style={styles.profile} source={{ uri: profile.avatar }} />
-        <Text style={styles.name}>{profile.name}</Text>
+      <View style={styles.profile}>
+        <Image style={styles.profileAvatar} source={{ uri: profile.avatar }} />
+        <Text style={styles.profileName}>{profile.name}</Text>
+        <Text style={styles.profileUsername}>{profile.user}</Text>
       </View>
       <View style={styles.cardsContainer}>
         {users.length === 0 ? (
-          <Text style={styles.empty}>Acabou :/</Text>
+          <Text style={styles.empty}>Acabou :(</Text>
         ) : (
           users.map((user, index) => (
             <View
               key={user._id}
               style={[styles.card, { zIndex: users.length - index }]}
             >
-              <Image
-                style={styles.avatar}
-                source={{
-                  uri: user.avatar
-                }}
-              />
+              <Image style={styles.avatar} source={{ uri: user.avatar }} />
               <View style={styles.footer}>
                 <Text style={styles.name}>{user.name}</Text>
                 <Text style={styles.bio} numberOfLines={3}>
@@ -99,15 +120,28 @@ export default function Main({ navigation }) {
           ))
         )}
       </View>
-      {users.length === 0 ? (
-        <View />
-      ) : (
+
+      {users.length > 0 && (
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={styles.button} onPress={handleDislike}>
             <Image source={dislike} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={handleLike}>
             <Image source={like} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {matchDev && (
+        <View style={styles.matchContainer}>
+          <Image style={styles.matchImage} source={itsamatch} />
+          <Image style={styles.matchAvatar} source={{ uri: matchDev.avatar }} />
+
+          <Text style={styles.matchName}>{matchDev.name}</Text>
+          <Text style={styles.matchBio}>{matchDev.bio}</Text>
+
+          <TouchableOpacity onPress={() => setMatchDev(null)}>
+            <Text style={styles.closeMatch}>FECHAR</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -120,99 +154,149 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
+
+  logo: {
+    marginTop: 30,
+  },
+
+  profileAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignSelf: "center",
+  },
+
+  profileName: {
+    alignSelf: "center",
+    fontWeight: "bold",
+  },
+
+  profileUsername: {
+    alignSelf: "center",
+    fontWeight: "normal",
+    color: "#999",
+  },
+
+  empty: {
+    alignSelf: "center",
+    color: "#999",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+
   cardsContainer: {
     flex: 1,
     alignSelf: "stretch",
     justifyContent: "center",
-    maxHeight: 500
+    maxHeight: 500,
   },
-  logo: {
-    marginTop: 20
-  },
-  user: {
-    top: 0,
-    elevation: 3
-  },
-  profile: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignSelf: "center",
-    marginHorizontal: 20
-  },
-  name: {
-    fontWeight: "bold"
-  },
-  empty: {
-    alignSelf: "center",
-    color: "#999",
-    fontSize: 40,
-    fontWeight: "bold"
-  },
+
   card: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#DDD",
     borderRadius: 8,
+    margin: 30,
     marginTop: 10,
-    marginHorizontal: 20,
     overflow: "hidden",
     position: "absolute",
     top: 0,
-    right: 0,
     left: 0,
+    right: 0,
     bottom: 0,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.5,
-    shadowRadius: 2,
-    shadowOffset: {
-      width: 0,
-      height: 2
-    }
   },
+
   avatar: {
     flex: 1,
-    height: 300
+    height: 300,
   },
+
   footer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFF",
     paddingHorizontal: 20,
-    paddingVertical: 15
+    paddingVertical: 15,
   },
+
   name: {
     fontSize: 16,
-    fontWeight: "bold"
+    fontWeight: "bold",
+    color: "#333",
   },
+
   bio: {
     fontSize: 14,
     color: "#999",
     marginTop: 5,
-    lineHeight: 18
+    lineHeight: 18,
   },
+
   buttonsContainer: {
     flexDirection: "row",
     marginBottom: 30,
-    top: 0
+    zIndex: 0,
   },
+
   button: {
-    width: 70,
-    height: 70,
-    borderRadius: 45,
-    backgroundColor: "#fff",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 20,
-    elevation: 3,
+    elevation: 2,
     shadowColor: "#000",
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.05,
     shadowRadius: 2,
     shadowOffset: {
       width: 0,
-      height: 2
-    }
-  }
+      height: 2,
+    },
+  },
+
+  matchContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 9999999999999999999,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  matchImage: {
+    height: 60,
+    resizeMode: "contain",
+  },
+
+  matchAvatar: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 5,
+    borderColor: "#FFF",
+    marginVertical: 30,
+  },
+
+  matchName: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#FFF",
+  },
+
+  matchBio: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    lineHeight: 24,
+    textAlign: "center",
+    paddingHorizontal: 30,
+  },
+
+  closeMatch: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
+    marginTop: 30,
+    fontWeight: "bold",
+  },
 });

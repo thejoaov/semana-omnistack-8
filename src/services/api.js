@@ -1,7 +1,9 @@
 import axios from "axios";
-
+import { DB_URL } from "react-native-dotenv";
+const url = DB_URL;
 const api = axios.create({
-  baseURL: "https://sem-omni-backend.herokuapp.com/devs"
+  baseURL: url,
 });
 
 export default api;
+export { url };
