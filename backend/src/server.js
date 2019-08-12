@@ -32,4 +32,6 @@ app.use(cors());
 app.use(express.json());
 app.use(routes);
 
-server.listen(3333);
+server.listen(process.env.PORT, "0.0.0.0", function() {
+  console.log(`Server rodando em: ${process.env.HOST}:${process.env.PORT}`);
+});
